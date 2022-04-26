@@ -1,4 +1,3 @@
 build/
 .idea/
 .gradle/
-/benchmark/src/main/generated/
