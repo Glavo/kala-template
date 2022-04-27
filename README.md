@@ -65,13 +65,15 @@ Java Code:
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle("simple");
 
-TemplateEngine.getDefault().process("Hello ${user.name}! Welcome to ${user.site}", bundle); // --> "Hello Glavo! Welcome to https://glavo.site"
+TemplateEngine.getDefault()
+        .process("Hello ${user.name}! Welcome to ${user.site}", bundle); // --> "Hello Glavo! Welcome to https://glavo.site"
 ```
 
 And, a more flexible approach is to pass a `Function`:
 
 ```java
-TemplateEngine.getDefault().process("Welcome to ${Glavo}!", it -> it + "'s site"); // --> "Welcome to Glavo's site!"
+TemplateEngine.getDefault()
+        .process("Welcome to ${Glavo}!", it -> it + "'s site"); // --> "Welcome to Glavo's site!"
 ```
 
 This gives you extreme flexibility, you can use it to achieve any function you want.
@@ -96,7 +98,8 @@ To simplify writing input from a template file and output to another file,
 `TemplateEngine` provides a builtin overload that allows you to achieve the same functionality as above:
 
 ```java
-TemplateEngine.getDefault().process(Paths.get("MyTemplate.xml.template"), Paths.get("MyTemplate.xml"), Map.of(...));
+TemplateEngine.getDefault()
+        .process(Paths.get("MyTemplate.xml.template"), Paths.get("MyTemplate.xml"), Map.of(...));
 ```
 
 ---
