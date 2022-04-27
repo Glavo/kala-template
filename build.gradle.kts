@@ -18,7 +18,7 @@ plugins {
 }
 
 group = "org.glavo.kala"
-version = "0.1.0"// + "-SNAPSHOT"
+version = "0.2.0" + "-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -75,8 +75,8 @@ configure<PublishingExtension> {
 
             pom {
                 name.set(project.name)
-                description.set("Kala Platform")
-                url.set("https://github.com/Glavo/kala-platform")
+                description.set("Kala Template")
+                url.set("https://github.com/Glavo/kala-template")
                 licenses {
                     license {
                         name.set("Apache-2.0")
@@ -92,7 +92,7 @@ configure<PublishingExtension> {
                     }
                 }
                 scm {
-                    url.set("https://github.com/Glavo/kala-platform")
+                    url.set("https://github.com/Glavo/kala-template")
                 }
             }
         }
@@ -102,7 +102,7 @@ configure<PublishingExtension> {
 tasks.withType<Javadoc>().configureEach {
     (options as StandardJavadocDocletOptions).also {
         it.encoding("UTF-8")
-        it.addStringOption("link", "https://docs.oracle.com/en/java/javase/11/docs/api/")
+        it.addStringOption("link", "https://docs.oracle.com/en/java/javase/17/docs/api/")
         it.addBooleanOption("html5", true)
         it.addStringOption("Xdoclint:none", "-quiet")
     }
