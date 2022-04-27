@@ -34,6 +34,10 @@ tasks.compileJava {
     targetCompatibility = "1.8"
 }
 
+tasks.compileTestJava {
+    options.release.set(17)
+}
+
 val compileModuleInfo = tasks.create<org.glavo.mic.tasks.CompileModuleInfo>("compileModuleInfo") {
     sourceFile.set(file("src/main/module-info.java"))
     targetFile.set(buildDir.resolve("classes/java/module-info/module-info.class"))
