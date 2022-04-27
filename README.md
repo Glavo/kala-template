@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/maven-central/v/org.glavo.kala/kala-template?label=Maven%20Central)](https://search.maven.org/artifact/org.glavo.kala/kala-template)
 
-This is a lightweight (about 1KB), streaming templating engine.
+This is a lightweight (about 1KB) templating engine.
 
 If you're tired of overly bloated template engines, then it's probably what you want.
 
