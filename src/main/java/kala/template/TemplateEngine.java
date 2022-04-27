@@ -5,8 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.function.Function;
 
+/**
+ * The core class of the template processing engine.
+ *
+ * See <a href="https://github.com/Glavo/kala-template">https://github.com/Glavo/kala-template</a> for detailed documentation.
+ */
 public final class TemplateEngine {
 
     public static final String DEFAULT_BEGIN_TAG = "${";
@@ -70,6 +76,22 @@ public final class TemplateEngine {
         return false;
     }
 
+    /**
+     * The core method of the template engine.
+     * <p>
+     * It reads the template from the {@code input} and outputs the generated content to the {@code output}.
+     * The {@code mapper} is used to map the marker to the content in the output.
+     * <p>
+     * The whole process is streaming and does not read the entire template into memory.
+     * <p>
+     * For ease of use, this method provides many overloads.
+     * You can simply use a {@link String} as input, or get a {@link String} directly by omitting to provide output.
+     * You can also use {@link Map} or {@link ResourceBundle} instead of mapper, which will automatically use the marker as the key to find the corresponding value.
+     *
+     * @throws IOException              throws when an exception occurs in input or output
+     * @throws TemplateProcessException when a begin tag appears, but there is no corresponding end tag;
+     *                                  if the {@link #errorMode} is {@link ErrorMode#THROW}, it will also throw when mapper returns {@code null}
+     */
     public void process(Reader input, Appendable output, Function<? super String, ?> mapper) throws IOException, TemplateProcessException {
         final char beginTag0 = beginTag.charAt(0);
         final char endTag0 = endTag.charAt(0);
@@ -104,18 +126,44 @@ public final class TemplateEngine {
         }
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public void process(Reader input, Appendable output, Map<? super String, ?> markerTable) throws IOException {
         process(input, output, markerTable::get);
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
+    public void process(Reader input, Appendable output, ResourceBundle resourceBundle) throws IOException {
+        process(input, output, resourceBundle::getObject);
+    }
+
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public void process(String input, Appendable output, Function<? super String, ?> mapper) throws IOException {
         process(new StringReader(input), output, mapper);
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public void process(String input, Appendable output, Map<? super String, ?> markerTable) throws IOException {
         process(new StringReader(input), output, markerTable);
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
+    public void process(String input, Appendable output, ResourceBundle resourceBundle) throws IOException {
+        process(new StringReader(input), output, resourceBundle);
+    }
+
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public void process(Path input, Path output, Function<? super String, ?> mapper) throws IOException {
         try (Reader reader = Files.newBufferedReader(input);
              Writer writer = Files.newBufferedWriter(output)) {
@@ -123,6 +171,9 @@ public final class TemplateEngine {
         }
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public void process(Path input, Path output, Map<? super String, ?> markerTable) throws IOException {
         try (Reader reader = Files.newBufferedReader(input);
              Writer writer = Files.newBufferedWriter(output)) {
@@ -130,6 +181,19 @@ public final class TemplateEngine {
         }
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
+    public void process(Path input, Path output, ResourceBundle resourceBundle) throws IOException {
+        try (Reader reader = Files.newBufferedReader(input);
+             Writer writer = Files.newBufferedWriter(output)) {
+            process(reader, writer, resourceBundle);
+        }
+    }
+
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public String process(String input, Function<? super String, ?> mapper) {
         StringBuilder res = new StringBuilder();
         try {
@@ -140,10 +204,26 @@ public final class TemplateEngine {
         return res.toString();
     }
 
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
     public String process(String input, Map<? super String, ?> markerTable) {
         StringBuilder res = new StringBuilder();
         try {
             process(new StringReader(input), res, markerTable);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return res.toString();
+    }
+
+    /**
+     * @see #process(Reader, Appendable, Function)
+     */
+    public String process(String input, ResourceBundle resourceBundle) {
+        StringBuilder res = new StringBuilder();
+        try {
+            process(new StringReader(input), res, resourceBundle);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
