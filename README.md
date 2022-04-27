@@ -68,9 +68,7 @@ ResourceBundle bundle = ResourceBundle.getBundle("simple");
 TemplateEngine.getDefault().process("Hello ${user.name}! Welcome to ${user.site}", bundle); // --> "Hello Glavo! Welcome to https://glavo.site"
 ```
 
----
-
-A more flexible approach is to pass a `Function`:
+And, a more flexible approach is to pass a `Function`:
 
 ```java
 TemplateEngine.getDefault().process("Welcome to ${Glavo}!", it -> it + "'s site"); // --> "Welcome to Glavo's site!"
