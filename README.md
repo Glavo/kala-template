@@ -4,7 +4,11 @@
 
 This is a lightweight (about 1KB) templating engine.
 
-If you're tired of overly bloated template engines, then it's probably what you want.
+It does not have complex structure and functional support.
+What it does is very simple, is to insert the content between specific tags into the output after custom mapping.
+
+
+If you don't need those complicated templating engine features, it's very simple and fast and is probably what you want.
 
 ## Why I choose it?
 
