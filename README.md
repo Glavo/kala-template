@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/maven-central/v/org.glavo.kala/kala-template?label=Maven%20Central)](https://search.maven.org/artifact/org.glavo.kala/kala-template)
 
-This is a lightweight (about 1KB) templating engine.
+This is a lightweight (about 1KB) Java templating engine.
 
 It does not have complex structure and functional support.
 What it does is very simple, is to insert the content between specific tags into the output after custom mapping.
