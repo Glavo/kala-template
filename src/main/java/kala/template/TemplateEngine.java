@@ -1,16 +1,17 @@
 package kala.template;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.function.Function;
 
 /**
  * The core class of the template processing engine.
- *
+ * <p>
  * See <a href="https://github.com/Glavo/kala-template">https://github.com/Glavo/kala-template</a> for detailed documentation.
  */
 public final class TemplateEngine {
@@ -121,7 +122,7 @@ public final class TemplateEngine {
                     }
                 }
             } else {
-                throw new TemplateProcessException("Missing the end tag");
+                throw new TemplateProcessException("missing the end tag");
             }
         }
     }
@@ -301,6 +302,245 @@ public final class TemplateEngine {
 
         public TemplateEngine build() {
             return new TemplateEngine(beginTag, endTag, errorMode);
+        }
+    }
+
+    private static void printHelpMessage(PrintStream writer) throws IOException {
+        writer.println("Usage: kala-template [options] <input-file> <output-file>");
+        writer.println();
+        writer.println("Options:");
+        writer.println("  -?, -h, --help    Print this help message");
+        writer.println("  --begin-tag   <begin tag>");
+        writer.println("                    Specify the begin tag, defaults to '${'");
+        writer.println("  --end-tag     <end tag>");
+        writer.println("                    Specify the end tag, defaults to '}'");
+        writer.println("  --input-encoding      <encoding>");
+        writer.println("                    Specify character encoding used by input file, defaults to UTF-8");
+        writer.println("  --output-encoding     <encoding>");
+        writer.println("                    Specify character encoding used by output file, defaults to UTF-8");
+        writer.println("  --properties-encoding <encoding>");
+        writer.println("                    Specify character encoding used by properties file, defaults to UTF-8");
+        writer.println("  -e --encoding         <encoding>");
+        writer.println("                    Specify character encoding for input file, output file and properties files");
+        writer.println("  -D<name>=<value>  set a property");
+        writer.println("  -p --properties-file <properties file>");
+        writer.println("                    Load properties from the specified properties file");
+        writer.println("  -np --no-system-properties");
+        writer.println("                    Do not use JVM system properties");
+        writer.println("  -ne --no-environment-variables");
+        writer.println("                    Do not use environment variables");
+    }
+
+    private static String readOptionValue(String opt, Iterator<String> it) {
+        if (!it.hasNext()) {
+            System.err.println("error: option '" + opt + "' requires an argument");
+            System.exit(1);
+        }
+        return it.next();
+    }
+
+    private static Charset nativeCharset() {
+        String nativeEncoding = System.getProperty("native.encoding");
+        if (nativeEncoding != null) {
+            return Charset.forName(nativeEncoding);
+        } else {
+            return Charset.defaultCharset();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Iterator<String> it = Arrays.asList(args).iterator();
+        if (!it.hasNext()) {
+            printHelpMessage(System.err);
+            System.exit(1);
+        }
+
+        String beginTag = DEFAULT_BEGIN_TAG;
+        String endTag = DEFAULT_END_TAG;
+        ErrorMode errorMode = ErrorMode.DEFAULT;
+        Charset propertiesEncoding = StandardCharsets.UTF_8;
+        Charset inputEncoding = null;
+        Charset outputEncoding = null;
+        boolean stdin = false;
+        boolean stdout = false;
+        Path inputFile = null;
+        Path outputFile = null;
+        boolean useSystemProperties = true;
+        boolean useEnvironmentVariables = true;
+
+        LinkedHashMap<String, Object> defines = new LinkedHashMap<>();
+
+        while (it.hasNext()) {
+            String opt = it.next();
+            switch (opt) {
+                case "-h":
+                case "-help":
+                case "--help":
+                case "-?":
+                    printHelpMessage(System.out);
+                    return;
+                case "-e":
+                case "-encoding":
+                case "--encoding":
+                    inputEncoding = Charset.forName(readOptionValue(opt, it));
+                    outputEncoding = inputEncoding;
+                    propertiesEncoding = inputEncoding;
+                    break;
+                case "-input-encoding":
+                case "--input-encoding":
+                    inputEncoding = Charset.forName(readOptionValue(opt, it));
+                    break;
+                case "-output-encoding":
+                case "--output-encoding":
+                    outputEncoding = Charset.forName(readOptionValue(opt, it));
+                    break;
+                case "-properties-encoding":
+                case "--properties-encoding":
+                    propertiesEncoding = Charset.forName(readOptionValue(opt, it));
+                    break;
+                case "-p":
+                case "-properties-file":
+                case "--properties-file":
+                    Path file = Paths.get(readOptionValue(opt, it));
+                    if (!Files.isRegularFile(file)) {
+                        System.err.println("error: properties file '" + file + "' not exists");
+                        System.exit(1);
+                    }
+
+                    try (Reader reader = Files.newBufferedReader(file, propertiesEncoding)) {
+                        Properties properties = new Properties();
+                        properties.load(reader);
+                        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                            defines.put((String) entry.getKey(), entry.getValue());
+                        }
+                    }
+                    break;
+                case "-np":
+                case "-no-system-properties":
+                case "--no-system-properties":
+                    useSystemProperties = false;
+                    break;
+                case "-ne":
+                case "-no-environment-variables":
+                case "--no-environment-variables":
+                    useEnvironmentVariables = false;
+                    break;
+                case "-error-mode":
+                case "--error-mode":
+                    String mode = readOptionValue(opt, it);
+                    try {
+                        errorMode = ErrorMode.valueOf(mode.toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("error: unknown error mode '" + mode + "'");
+                        System.exit(1);
+                    }
+                    break;
+                case "-begin-tag":
+                case "--begin-tag":
+                    beginTag = readOptionValue(opt, it);
+                    break;
+                case "-end-tag":
+                case "--end-tag":
+                    endTag = readOptionValue(opt, it);
+                    break;
+                case "-stdin":
+                case "--stdin":
+                    stdin = true;
+                    break;
+                case "-stdout":
+                case "--stdout":
+                    stdout = true;
+                    break;
+                default:
+                    if (opt.startsWith("-D")) {
+                        String value = opt.substring("-D".length());
+                        int idx = value.indexOf('=');
+                        if (idx >= 0) {
+                            defines.put(value.substring(0, idx), value.substring(idx + 1));
+                        } else {
+                            defines.put(value, "");
+                        }
+                    } else if (inputFile == null && !stdin) {
+                        inputFile = Paths.get(opt);
+                        if (!Files.isRegularFile(inputFile)) {
+                            System.err.println("error: input file not exists");
+                            System.exit(1);
+                        }
+                    } else if (outputFile == null && !stdout) {
+                        outputFile = Paths.get(opt);
+                    } else {
+                        System.err.println("error: unknown option '" + opt + "'");
+                        System.exit(1);
+                    }
+            }
+        }
+
+        if (inputFile == null && !stdin) {
+            System.err.println("error: missing input file");
+            System.exit(1);
+        }
+
+        if (outputFile == null && !stdout) {
+            System.err.println("error: missing output file");
+            System.exit(1);
+        }
+
+        final boolean finalUseSystemProperties = useSystemProperties;
+        final boolean finalUseEnvironmentVariables = useEnvironmentVariables;
+        Function<String, Object> mapper = key -> {
+            Object value = defines.get(key);
+            if (value == null && finalUseSystemProperties) {
+                value = System.getProperty(key);
+            }
+            if (value == null && finalUseEnvironmentVariables) {
+                value = System.getenv(key);
+            }
+            return value;
+        };
+
+        TemplateEngine engine = TemplateEngine.builder()
+                .tag(beginTag, endTag)
+                .errorMode(errorMode)
+                .build();
+
+        if (inputEncoding == null) {
+            inputEncoding = stdin ? nativeCharset() : StandardCharsets.UTF_8;
+        }
+
+        if (outputEncoding == null) {
+            outputEncoding = stdout ? nativeCharset() : StandardCharsets.UTF_8;
+        }
+
+        Reader reader = null;
+        Writer writer = null;
+
+        try {
+            reader = stdin ? new InputStreamReader(System.in, inputEncoding) : Files.newBufferedReader(inputFile, inputEncoding);
+            writer = stdout ? new OutputStreamWriter(System.out, outputEncoding) : Files.newBufferedWriter(outputFile, outputEncoding);
+
+            engine.process(reader, writer, mapper);
+        } catch (TemplateProcessException e) {
+            System.err.println("error: " + e.getMessage());
+            System.exit(1);
+        } finally {
+            if (reader != null && !stdin) {
+                try {
+                    reader.close();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (writer != null) {
+                try {
+                    if (stdout)
+                        writer.flush();
+                    else
+                        writer.close();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

@@ -29,8 +29,17 @@ tasks.compileTestJava {
     options.release.set(17)
 }
 
+val mainClass = "kala.template.TemplateEngine"
+
+tasks.jar {
+    manifest.attributes(
+        "Main-Class" to mainClass
+    )
+}
+
 tasks.withType<org.glavo.mic.tasks.CompileModuleInfo> {
     moduleVersion = project.version.toString()
+    moduleMainClass = mainClass
 }
 
 tasks.getByName<Test>("test") {
