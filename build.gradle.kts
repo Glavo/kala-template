@@ -1,20 +1,11 @@
 import java.util.Properties
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("org.glavo:module-info-compiler:1.5")
-    }
-}
-
 plugins {
     `java-library`
     `maven-publish`
     signing
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("org.glavo.compile-module-info-plugin") version "2.0"
 }
 
 group = "org.glavo.kala"
@@ -25,29 +16,22 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
 }
 
 tasks.compileJava {
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
+    sourceCompatibility = "9"
+    options.release.set(8)
 }
 
 tasks.compileTestJava {
     options.release.set(17)
 }
 
-val compileModuleInfo = tasks.create<org.glavo.mic.tasks.CompileModuleInfo>("compileModuleInfo") {
-    sourceFile.set(file("src/main/module-info.java"))
-    targetFile.set(buildDir.resolve("classes/java/module-info/module-info.class"))
+tasks.withType<org.glavo.mic.tasks.CompileModuleInfo> {
+    moduleVersion = project.version.toString()
 }
-
-tasks.jar {
-    dependsOn(compileModuleInfo)
-    from(compileModuleInfo.targetFile)
-}
-
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
@@ -61,7 +45,6 @@ java {
 tasks.withType<GenerateModuleMetadata>().configureEach {
     enabled = false
 }
-
 
 loadMavenPublishProperties()
 

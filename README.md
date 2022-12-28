@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/maven-central/v/org.glavo.kala/kala-template?label=Maven%20Central)](https://search.maven.org/artifact/org.glavo.kala/kala-template)
 
-This is a lightweight (about 1KB) Java templating engine.
+This is a lightweight (about 10 KiB) Java templating engine.
 
 It does not have complex structure and functional support.
 What it does is very simple, is to insert the content between specific tags into the output after custom mapping.
@@ -12,7 +12,7 @@ If you don't need those complicated templating engine features, it's very simple
 
 ## Why I choose it?
 
-* It's very lightweight: it's only a jar of about 1KB, and it doesn't have any dependencies;
+* It's very lightweight: it's only a jar of about 10 KiB, and it doesn't have any dependencies;
 * It is compiled with Java 8, but also provides `module-info.class`, so it has full support for JPMS;
 * It's streaming and doesn't need to read the entire file into memory, so it can handle very large files with ease;
 * It is easy to expand and can meet most needs on its basis;
