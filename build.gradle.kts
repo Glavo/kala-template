@@ -55,6 +55,30 @@ tasks.withType<GenerateModuleMetadata>().configureEach {
     enabled = false
 }
 
+val executableJar by tasks.registering {
+    group = "build"
+
+    val outputFile = file("$buildDir/libs/kala-template-${project.version}.sh")
+
+    dependsOn(tasks.jar)
+    inputs.files(file("src/main/shell/header.sh"), tasks.jar.get().archiveFile)
+    outputs.file(outputFile)
+
+    doLast {
+        outputFile.parentFile.mkdirs()
+
+        outputFile.outputStream().use { output ->
+            file("$rootDir/src/main/shell/header.sh").inputStream().use { input ->
+                output.write(input.readAllBytes())
+            }
+            output.write(tasks.jar.get().archiveFile.get().asFile.readBytes())
+        }
+        outputFile.setExecutable(true)
+    }
+}
+
+tasks.build.get().dependsOn(executableJar)
+
 loadMavenPublishProperties()
 
 configure<PublishingExtension> {

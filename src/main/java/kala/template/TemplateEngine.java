@@ -310,10 +310,12 @@ public final class TemplateEngine {
         writer.println();
         writer.println("Options:");
         writer.println("  -?, -h, --help    Print this help message");
+        writer.println(" --stdin            Use standard  input instead of  input file");
+        writer.println(" --stdout           Use standard output instead of output file");
         writer.println("  --begin-tag   <begin tag>");
         writer.println("                    Specify the begin tag, defaults to '${'");
         writer.println("  --end-tag     <end tag>");
-        writer.println("                    Specify the end tag, defaults to '}'");
+        writer.println("                    Specify the end tag,   defaults to  '}'");
         writer.println("  --input-encoding      <encoding>");
         writer.println("                    Specify character encoding used by input file, defaults to UTF-8");
         writer.println("  --output-encoding     <encoding>");
