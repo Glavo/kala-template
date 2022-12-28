@@ -7,8 +7,10 @@ This is a lightweight (about 10 KiB) Java templating engine.
 It does not have complex structure and functional support.
 What it does is very simple, is to insert the content between specific tags into the output after custom mapping.
 
-
 If you don't need those complicated templating engine features, it's very simple and fast and is probably what you want.
+
+It provides a command line interface, which can be used as a command line tool to generate target files from template files
+See the [Use as Command-Line tool](#use-as-command-line-tool) section for usage as a command-line tool.
 
 ## Why I choose it?
 
@@ -137,6 +139,80 @@ TemplateEngine engine = TemplateEngine.builder()
 
 engine.process("Hello ${someone}!", Map.of("name", "Glavo")); // --> "Hello !"
 ```
+
+## Use as Command-Line tool
+
+You can download the latest jar from the [release page](https://github.com/Glavo/kala-template/releases) and execute it with `java -jar kala-template.jar`,
+
+We also provide a `.sh` file, which packages jar files in a special way. 
+In the environment where java is installed, you can use it as a script to replace `java -jar`.
+
+It accepts two main option: an input file and an output file.
+
+```
+$ cat template.txt 
+Hello, ${user.name}! ${GREETINGS}
+
+$ export GREETINGS='Nice to see you!'
+$ ./kala-template.sh template.txt output.txt
+
+$ cat output.txt 
+Hello, glavo! Nice to see you!
+```
+
+kala-template searches for values from JVM system properties and environment variables by default.
+In this example, `${user.name}` is replaced by the value of `System.getProperty("user.name")`, 
+and `${GREETINGS}` is replaced by the value of `System.getenv("GREETINGS")`.
+
+You can disable this behavior with the `--no-system-properties` and `--no-environment-variables` options.
+
+In addition, you can use the `-D<key>=<value>` option to provide a single value 
+and the `--properties-file <properties file>` option to provide a properties file containing multiple values:
+
+```
+$ cat template.txt 
+Glavo's site:   ${glavo.site}
+Glavo's GitHub: ${glavo.github}
+Donate: ${glavo.donate}
+
+$ cat values.properties 
+glavo.github=https://github.com/Glavo
+glavo.site=https://glavo.site
+
+$ ./kala-template.sh -Dglavo.donate=https://donate.glavo.site/ --properties-file values.properties template.txt output.txt
+ 
+$ cat output.txt 
+Glavo's site:   https://glavo.site
+Glavo's GitHub: https://github.com/Glavo
+Donate: https://donate.glavo.site/
+```
+
+You can also customize tags around variable names:
+
+```
+$ cat template.txt 
+Hello, {%user.name%}!
+
+$ ./kala-template.sh --begin-tag '{%' --end-tag '%}' template.txt output.txt
+
+$ cat output.txt 
+Hello, glavo!
+```
+
+You can also use the `--stdin` and `--stdout` option to replace the file with a standard input/output stream.
+This can be easily combined with the pipeline.
+
+```
+$ cat template.txt 
+os.name=${os.name}
+os.arch=${os.arch}
+os.version=${os.version}
+
+$ ./kala-template.sh template.txt --stdout | grep 'Linux'
+os.name=Linux
+```
+
+More details can be printed using the `--help` option.
 
 ## Donate
 

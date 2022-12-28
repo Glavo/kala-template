@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "org.glavo.kala"
-version = "0.2.0" + "-SNAPSHOT"
+version = "0.2.0"// + "-SNAPSHOT"
 
 repositories {
     mavenCentral()
