@@ -454,25 +454,32 @@ public final class TemplateEngine {
                     stdout = true;
                     break;
                 default:
-                    if (opt.startsWith("-D")) {
-                        String value = opt.substring("-D".length());
-                        int idx = value.indexOf('=');
-                        if (idx >= 0) {
-                            defines.put(value.substring(0, idx), value.substring(idx + 1));
+                    if (opt.startsWith("-")) {
+                        if (opt.startsWith("-D")) {
+                            String value = opt.substring("-D".length());
+                            int idx = value.indexOf('=');
+                            if (idx >= 0) {
+                                defines.put(value.substring(0, idx), value.substring(idx + 1));
+                            } else {
+                                defines.put(value, "");
+                            }
                         } else {
-                            defines.put(value, "");
-                        }
-                    } else if (inputFile == null && !stdin) {
-                        inputFile = Paths.get(opt);
-                        if (!Files.isRegularFile(inputFile)) {
-                            System.err.println("error: input file not exists");
+                            System.err.println("error: unknown option '" + opt + "'");
                             System.exit(1);
                         }
-                    } else if (outputFile == null && !stdout) {
-                        outputFile = Paths.get(opt);
                     } else {
-                        System.err.println("error: unknown option '" + opt + "'");
-                        System.exit(1);
+                        if (inputFile == null && !stdin) {
+                            inputFile = Paths.get(opt);
+                            if (!Files.isRegularFile(inputFile)) {
+                                System.err.println("error: input file not exists");
+                                System.exit(1);
+                            }
+                        } else if (outputFile == null && !stdout) {
+                            outputFile = Paths.get(opt);
+                        } else {
+                            System.err.println("error: too many files");
+                            System.exit(1);
+                        }
                     }
             }
         }
